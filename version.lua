@@ -1,3 +1,3 @@
 author 'ManKind - [https://discord.gg/39fNFepADG]'
 description 'Used Vehicles'
-version '1.0.4'
+version '1.0.5'
