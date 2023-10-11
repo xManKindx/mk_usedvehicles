@@ -50,7 +50,7 @@ Config.Locations = {
             --'blista',
             --1456744817
         },
-        RestrictByClass = { --Add vehicle class numbers to this table to limit only those classes on this used lot (See all vehicle classes in README file)
+        RestrictByClass = { --Add vehicle class numbers to this table to limit only those classes on this used lot (See all vehicle classes in documentation)
             --8, --Motorcycles 
         },
         BlacklistModels = { --Any models listed here will not be allowed to be listed on this lot

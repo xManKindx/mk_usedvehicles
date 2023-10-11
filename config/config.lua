@@ -162,6 +162,21 @@ Config.VehicleTransfer = {
         --Add code to give vehicle keys to new owner. ([qb-vehiclekeys] and [mk_vehiclekeys] are checked automatically by the script so you don't have to add them here)
 
     end,
+    VehicleTransferAuthFunction = function(Vehicle, Model, Plate)
+        ---@param Vehicle number Vehicle entity id
+        ---@param Model number Vehicle model
+        ---@param Plate string Vehicle plate text
+        ---@return boolean
+
+        --Add custom code here if you want to disable vehicle transfers in a custom way
+        return true
+    end,
+    VehicleTransferBlacklist = { --Vehicles listed here will not be allowed to be transferred between players
+        --list models here by spawn code or model number to blacklist them
+        --'blista', 
+        --1456744817
+        
+    }
 }
 ------------------------------------------------------------------------------------------------------------------------------
 
