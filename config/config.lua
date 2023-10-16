@@ -77,6 +77,7 @@ Config.VehicleSoldServerFunction = function(Plate)
 end
 
 Config.Logs = {
+    WebHook = '', --Discord webhook
     ListingExpired = function(Location, SellerIdentifier, Model, Plate, Vin, Garage)
         ---@param Location string Location name taken from Config.Locations
         ---@param SellerIdentifier string Vehicle sellers identifier
@@ -86,6 +87,8 @@ Config.Logs = {
         ---@param Garage string Garage vehicle set to based on Config.Locations
         --Server code to create a log using listed information
 
+        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by player (**'..SellerIdentifier..'**) on lot (**'..Location..'**) has expired. Vehicle returned to garage **'..Garage..'**'
+        Utils:DiscordLog(Config.Logs.WebHook, 'Listing Expired', 15548997, logString)
     end,
     ListingRemoved = function(Location, SellerIdentifier, Model, Plate, Vin, Garage)
         ---@param Location string Location name taken from Config.Locations
@@ -96,6 +99,8 @@ Config.Logs = {
         ---@param Garage string Garage vehicle set to based on Config.Locations
         --Server code to create a log using listed information
 
+        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by player (**'..SellerIdentifier..'**) on lot (**'..Location..'**) was removed from the lot by the player. Vehicle returned to garage **'..Garage..'**'
+        Utils:DiscordLog(Config.Logs.WebHook, 'Listing Removed', 15105570, logString)
     end,
     ListingAdded = function(Location, SellerSource, SellerIdentifier, Model, Plate, Vin, ListingPrice, ListingDays)
         ---@param Location string Location vehicle listed at based on Config.Locations
@@ -108,6 +113,8 @@ Config.Logs = {
         ---@param ListingDays number Days vehicle stays on lot before expiring
         --Server code to create a log using listed information
 
+        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by (Player: **'..SellerIdentifier..'** | ID: **'..SellerSource..'**) on lot (**'..Location..'**) for (Price: $**'..Utils:FormatThousand(ListingPrice)..'** | Days: **'..ListingDays..'**)'
+        Utils:DiscordLog(Config.Logs.WebHook, 'Listing Added', 15844367, logString)
     end,
     VehiclePurchased = function(Location, BuyerSource, BuyerIdentifier, SellerSource, SellerIdentifier, Model, Plate, Vin, Price, CommissionPaid, SocietyDeposit)
         ---@param Location string Location vehicle listed at based on Config.Locations
@@ -123,6 +130,8 @@ Config.Logs = {
         ---@param SocietyDeposit number Amount sent to the DoPayment function to be deposited into society (Will be 0 if disabled in Config.Locations)
         --Server code to create a log using listed information
 
+        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by player (**'..SellerIdentifier..'**) on lot (**'..Location..'**) Purchased by (Player: **'..BuyerIdentifier..'** | ID: **'..BuyerSource..'**) for $**'..Utils:FormatThousand(Price)..'** | Commission paid to seller: $**'..Utils:FormatThousand(CommissionPaid)..'** | Society Deposit: $**'..Utils:FormatThousand(SocietyDeposit)..'**'
+        Utils:DiscordLog(Config.Logs.WebHook, 'Listing Purchased', 5763719, logString)
     end,
     VehicleSold = function(Location, SellerSource, SellerIdentifier, Model, Plate, Price)
         ---@param Location string Location vehicle listed at based on Config.Locations
@@ -133,6 +142,8 @@ Config.Logs = {
         ---@param Price number Amount vehicle was sold for
         --Server code to create a log when player sells their vehicle
         
+        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..'Model: [**'..Model..'**]) Sold to dealership (**'..Location..'**) by (Player: **'..SellerIdentifier..'** | ID: **'..SellerSource..'**) for $**'..Utils:FormatThousand(Price)..'**'
+        Utils:DiscordLog(Config.Logs.WebHook, 'Vehicle Sold To Dealer', 5763719, logString)
     end,
 }
 
