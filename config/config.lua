@@ -173,12 +173,12 @@ Config.VehicleTransfer = {
         --Add code to give vehicle keys to new owner. ([qb-vehiclekeys] and [mk_vehiclekeys] are checked automatically by the script so you don't have to add them here)
 
     end,
-    VehicleTransferAuthFunction = function(Vehicle, Model, Plate)
+    VehicleTransferAuthFunction = function(Vehicle, Model, Plate, BuyerSource, BuyerPlayerData)
         ---@param Vehicle number Vehicle entity id
         ---@param Model number Vehicle model
         ---@param Plate string Vehicle plate text
         ---@return boolean
-
+        
         --Add custom code here if you want to disable vehicle transfers in a custom way
         return true
     end,
