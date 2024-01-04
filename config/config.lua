@@ -1,11 +1,11 @@
 Config = {}
 
 Config.VinNumberField = 'vin' --SET TO VIN NUMBER FIELD FOR PLAYER_VEHICLES (QB) OR OWNED_VEHICLES (ESX) TABLE IF YOU USE VIN NUMBER. EXAMPLE: 'vin_number'
-Config.FinanceBalanceColumn = 'balance' --SET THIS TO YOUR COLUMN IN YOUR VEHICLES DATABASE THAT STORES FINANCING BALANCE FOR OWNED VEHICLES. SET false IF YOU DO NO USE FINANCING
 Config.FakePlateColumn = 'fakeplate' --SET THIS TO YOUR COLUMN IN YOUR VEHICLES DATABASE THAT STORES FAKEPLATES FOR OWNED VEHICLES. SET false IF YOU DO NOT USE FAKE PLATES
 Config.GarageColumn = 'garage' --SET THIS TO YOUR COLUMN IN YOUR VEHICLES DATABASE THAT STORES THE GARAGE NAME WHERE VEHICLES ARE PARKED
 
 Config.ConsoleLogging = true --TRUE DISPLAYS SCRIPT LOGGING INFO IN F8 AND SERVER CONSOLE
+Config.DebugTarget = false --TRUE DISPLAYS F8 DEBUGGING FOR TARGET MENU. ONLY TURN ON IF HAVING ISSUES WITH TARGET MENU NOT SHOWING UP
 
 Config.RestrictJobVehicles = {
     Restrict = true,
@@ -16,133 +16,152 @@ Config.RestrictJobVehicles = {
     }
 }
 
-Config.VehiclePurchasedClientFunction = function(Vehicle, Plate)
-    ---@param Vehicle number Vehicle entity id
-    ---@param Plate string Vehicle plate text
+Config.CheckFinance = function(vehicleData)
+    ---@param vehicleData table (player_vehicles/owned_vehicles) database row for selected vehicle
+    ---@return number the remaining balance owed on the vehicle or 0
+
+    if not vehicleData or vehicleData == '' or next(vehicleData) == nil then return 0 end 
+
+    if vehicleData.balance then --default qb-core column
+        if tonumber(vehicleData.balance) then 
+            return tonumber(vehicleData.balance)
+        else
+            return 0
+        end
+    else
+        --custom check here
+        return 0
+    end
+end
+
+Config.VehiclePurchasedClientFunction = function(vehicle, plate)
+    ---@param vehicle number Vehicle entity id
+    ---@param plate string Vehicle plate text
     --client code to run after a vehicle has been purchased. (set fuel and give keys)
 
-    --exports['LegacyFuel']:SetFuel(Vehicle, 100) 
+    --exports['LegacyFuel']:SetFuel(vehicle, 100) 
     --custom give keys function here [qb-vehiclekeys] and [mk_vehiclekeys] are checked automatically by the script so you don't have to add them here)
 
 end
 
-Config.VehiclePurchasedServerFunction = function(Vehicle, NetId, Plate)
-    ---@param Vehicle number Vehicle entity id
-    ---@param NetId number Vehicle network id
-    ---@param Plate string Vehicle plate text
+Config.VehiclePurchasedServerFunction = function(vehicle, netId, plate)
+    ---@param vehicle number Vehicle entity id
+    ---@param netId number Vehicle network id
+    ---@param plate string Vehicle plate text
     --Set/remove any statebags, ect here for a purchased vehicle
 
-    Entity(Vehicle).state.NoPush = nil
-    Entity(Vehicle).state.NoImpound = nil
-    Entity(Vehicle).state.NoInventory = nil
-    Entity(Vehicle).state.NoChop = nil
+    Entity(vehicle).state.NoPush = nil
+    Entity(vehicle).state.NoImpound = nil
+    Entity(vehicle).state.NoInventory = nil
+    Entity(vehicle).state.NoChop = nil
 end
 
-Config.VehicleRemovedClientFunction = function(Vehicle, Plate)
-    ---@param Vehicle number Vehicle entity id
-    ---@param Plate string Vehicle plate text
+Config.VehicleRemovedClientFunction = function(vehicle, plate)
+    ---@param vehicle number Vehicle entity id
+    ---@param plate string Vehicle plate text
     --client code to run after a vehicle has been removed from a lot by the lister. (set fuel and give keys)
 
-    --exports['LegacyFuel']:SetFuel(Vehicle, 100) 
+    --exports['LegacyFuel']:SetFuel(vehicle, 100) 
     --custom give keys function here [qb-vehiclekeys] and [mk_vehiclekeys] are checked automatically by the script so you don't have to add them here)
     
 end
 
-Config.VehicleRemovedServerFunction = function(Vehicle, NetId, Plate)
-    ---@param Vehicle number Vehicle entity id
-    ---@param NetId number Vehicle network id
-    ---@param Plate string Vehicle plate text
+Config.VehicleRemovedServerFunction = function(vehicle, netId, plate)
+    ---@param vehicle number Vehicle entity id
+    ---@param netId number Vehicle network id
+    ---@param plate string Vehicle plate text
     --Set/remove any statebags, ect here for a vehicle removed off a lot by the lister
 
-    Entity(Vehicle).state.NoPush = nil
-    Entity(Vehicle).state.NoImpound = nil
-    Entity(Vehicle).state.NoInventory = nil
-    Entity(Vehicle).state.NoChop = nil
+    Entity(vehicle).state.NoPush = nil
+    Entity(vehicle).state.NoImpound = nil
+    Entity(vehicle).state.NoInventory = nil
+    Entity(vehicle).state.NoChop = nil
 end
 
-Config.VehicleOnLotServerFunction = function(Vehicle, NetId)
-    ---@param Vehicle number Vehicle entity id
-    ---@param NetId number Vehicle network id
+Config.VehicleOnLotServerFunction = function(vehicle, netId)
+    ---@param vehicle number Vehicle entity id
+    ---@param netId number Vehicle network id
     --Set any statebags, ect here for each vehicle spawned on the used lot.
 
-    Entity(Vehicle).state.NoPush = true
-    Entity(Vehicle).state.NoImpound = true
-    Entity(Vehicle).state.NoInventory = true
-    Entity(Vehicle).state.NoChop = true
+    Entity(vehicle).state.NoPush = true
+    Entity(vehicle).state.NoImpound = true
+    Entity(vehicle).state.NoInventory = true
+    Entity(vehicle).state.NoChop = true
 end
 
-Config.VehicleSoldServerFunction = function(Plate)
+Config.VehicleSoldServerFunction = function(plate)
     ---@param Plate string Vehicle plate text
     --Server function called after a vehicle has been sold by its owner
+
 end
 
 Config.Logs = {
     WebHook = '', --Discord webhook
-    ListingExpired = function(Location, SellerIdentifier, Model, Plate, Vin, Garage)
-        ---@param Location string Location name taken from Config.Locations
-        ---@param SellerIdentifier string Vehicle sellers identifier
-        ---@param Model string Vehicle model
-        ---@param Plate string Vehicle plate text
-        ---@param Vin string Vehicle vin number (returns as false if not used)
-        ---@param Garage string Garage vehicle set to based on Config.Locations
+    ListingExpired = function(location, sellerIdentifier, model, plate, vin, garage)
+        ---@param location string Location name taken from Config.Locations
+        ---@param sellerIdentifier string Vehicle sellers identifier
+        ---@param model string Vehicle model
+        ---@param plate string Vehicle plate text
+        ---@param vin string Vehicle vin number (returns as false if not used)
+        ---@param garage string Garage vehicle set to based on Config.Locations
         --Server code to create a log using listed information
 
         local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by player (**'..SellerIdentifier..'**) on lot (**'..Location..'**) has expired. Vehicle returned to garage **'..Garage..'**'
         Utils:DiscordLog(Config.Logs.WebHook, 'Listing Expired', 15548997, logString)
     end,
-    ListingRemoved = function(Location, SellerIdentifier, Model, Plate, Vin, Garage)
-        ---@param Location string Location name taken from Config.Locations
-        ---@param SellerIdentifier string Vehicle sellers identifier
-        ---@param Model string Vehicle model
-        ---@param Plate string Vehicle plate text
-        ---@param Vin string Vehicle vin number (returns as false if not used)
-        ---@param Garage string Garage vehicle set to based on Config.Locations
+    ListingRemoved = function(location, sellerIdentifier, model, plate, vin, garage)
+        ---@param location string Location name taken from Config.Locations
+        ---@param sellerIdentifier string Vehicle sellers identifier
+        ---@param model string Vehicle model
+        ---@param plate string Vehicle plate text
+        ---@param vin string Vehicle vin number (returns as false if not used)
+        ---@param garage string Garage vehicle set to based on Config.Locations
         --Server code to create a log using listed information
 
-        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by player (**'..SellerIdentifier..'**) on lot (**'..Location..'**) was removed from the lot by the player. Vehicle returned to garage **'..Garage..'**'
+        local logString = 'Vehicle (Plate: [**'..plate..'**] '..(vin and 'VIN: [**'..vin..'**] ' or '')..'Model: [**'..model..'**]) Listed by player (**'..sellerIdentifier..'**) on lot (**'..location..'**) was removed from the lot by the player. Vehicle returned to garage **'..garage..'**'
         Utils:DiscordLog(Config.Logs.WebHook, 'Listing Removed', 15105570, logString)
     end,
-    ListingAdded = function(Location, SellerSource, SellerIdentifier, Model, Plate, Vin, ListingPrice, ListingDays)
-        ---@param Location string Location vehicle listed at based on Config.Locations
-        ---@param SellerSource number Server ID of listing player
-        ---@param SellerIdentifier string Vehicle sellers identifier
-        ---@param Model string Vehicle model
-        ---@param Plate string Vehicle plate text
-        ---@param Vin string Vehicle vin number (returns as false if not used)
-        ---@param ListingPrice number Price vehicle listed for
-        ---@param ListingDays number Days vehicle stays on lot before expiring
+    ListingAdded = function(location, sellerSource, sellerIdentifier, model, plate, vin, listingPrice, listingDays)
+        ---@param location string Location vehicle listed at based on Config.Locations
+        ---@param sellerSource number Server ID of listing player
+        ---@param sellerIdentifier string Vehicle sellers identifier
+        ---@param model string Vehicle model
+        ---@param plate string Vehicle plate text
+        ---@param vin string Vehicle vin number (returns as false if not used)
+        ---@param listingPrice number Price vehicle listed for
+        ---@param listingDays number Days vehicle stays on lot before expiring
         --Server code to create a log using listed information
 
-        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by (Player: **'..SellerIdentifier..'** | ID: **'..SellerSource..'**) on lot (**'..Location..'**) for (Price: $**'..Utils:FormatThousand(ListingPrice)..'** | Days: **'..ListingDays..'**)'
+        local logString = 'Vehicle (Plate: [**'..plate..'**] '..(vin and 'VIN: [**'..vin..'**] ' or '')..'Model: [**'..model..'**]) Listed by (Player: **'..sellerIdentifier..'** | ID: **'..sellerSource..'**) on lot (**'..location..'**) for (Price: $**'..Utils:FormatThousand(listingPrice)..'** | Days: **'..listingDays..'**)'
         Utils:DiscordLog(Config.Logs.WebHook, 'Listing Added', 15844367, logString)
     end,
-    VehiclePurchased = function(Location, BuyerSource, BuyerIdentifier, SellerSource, SellerIdentifier, Model, Plate, Vin, Price, CommissionPaid, SocietyDeposit)
-        ---@param Location string Location vehicle listed at based on Config.Locations
-        ---@param BuyerSource number Server ID of buying player
-        ---@param BuyerIdentifier string Vehicle buyer identifier
-        ---@param SellerSource number Server ID of listing player
-        ---@param SellerIdentifier string Vehicle sellers identifier
-        ---@param Model string Vehicle model
-        ---@param Plate string Vehicle plate text
-        ---@param Vin string Vehicle vin number (returns as false if not used)
-        ---@param Price number Price vehicle purchased for
-        ---@param CommissionPaid number Amount paid to listing player (will be 0 if disabled in Config.Locations)
-        ---@param SocietyDeposit number Amount sent to the DoPayment function to be deposited into society (Will be 0 if disabled in Config.Locations)
+    VehiclePurchased = function(location, buyerSource, buyerIdentifier, sellerSource, sellerIdentifier, model, plate, vin, price, commissionPaid, societyDeposit)
+        ---@param location string Location vehicle listed at based on Config.Locations
+        ---@param buyerSource number Server ID of buying player
+        ---@param buyerIdentifier string Vehicle buyer identifier
+        ---@param sellerSource number Server ID of listing player
+        ---@param sellerIdentifier string Vehicle sellers identifier
+        ---@param model string Vehicle model
+        ---@param plate string Vehicle plate text
+        ---@param vin string Vehicle vin number (returns as false if not used)
+        ---@param price number Price vehicle purchased for
+        ---@param commissionPaid number Amount paid to listing player (will be 0 if disabled in Config.Locations)
+        ---@param societyDeposit number Amount sent to the DoPayment function to be deposited into society (Will be 0 if disabled in Config.Locations)
         --Server code to create a log using listed information
 
-        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by player (**'..SellerIdentifier..'**) on lot (**'..Location..'**) Purchased by (Player: **'..BuyerIdentifier..'** | ID: **'..BuyerSource..'**) for $**'..Utils:FormatThousand(Price)..'** | Commission paid to seller: $**'..Utils:FormatThousand(CommissionPaid)..'** | Society Deposit: $**'..Utils:FormatThousand(SocietyDeposit)..'**'
+        local logString = 'Vehicle (Plate: [**'..plate..'**] '..(vin and 'VIN: [**'..vin..'**] ' or '')..'Model: [**'..model..'**]) Listed by player (**'..sellerIdentifier..'**) on lot (**'..location..'**) Purchased by (Player: **'..buyerIdentifier..'** | ID: **'..buyerSource..'**) for $**'..Utils:FormatThousand(price)..'** | Commission paid to seller: $**'..Utils:FormatThousand(commissionPaid)..'** | Society Deposit: $**'..Utils:FormatThousand(societyDeposit)..'**'
         Utils:DiscordLog(Config.Logs.WebHook, 'Listing Purchased', 5763719, logString)
     end,
-    VehicleSold = function(Location, SellerSource, SellerIdentifier, Model, Plate, Price)
-        ---@param Location string Location vehicle listed at based on Config.Locations
-        ---@param SellerSource number Server ID of player
-        ---@param SellerIdentifier string Vehicle sellers identifier
-        ---@param Model string Vehicle model
-        ---@param Plate string Vehicle plate text
-        ---@param Price number Amount vehicle was sold for
+    VehicleSold = function(location, sellerSource, sellerIdentifier, model, plate, price)
+        ---@param location string Location vehicle listed at based on Config.Locations
+        ---@param sellerSource number Server ID of player
+        ---@param sellerIdentifier string Vehicle sellers identifier
+        ---@param model string Vehicle model
+        ---@param plate string Vehicle plate text
+        ---@param price number Amount vehicle was sold for
         --Server code to create a log when player sells their vehicle
         
-        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..'Model: [**'..Model..'**]) Sold to dealership (**'..Location..'**) by (Player: **'..SellerIdentifier..'** | ID: **'..SellerSource..'**) for $**'..Utils:FormatThousand(Price)..'**'
+        local logString = 'Vehicle (Plate: [**'..plate..'**] '..'Model: [**'..model..'**]) Sold to dealership (**'..location..'**) by (Player: **'..sellerIdentifier..'** | ID: **'..sellerSource..'**) for $**'..Utils:FormatThousand(price)..'**'
         Utils:DiscordLog(Config.Logs.WebHook, 'Vehicle Sold To Dealer', 5763719, logString)
     end,
 }
@@ -162,21 +181,23 @@ Config.VehicleTransfer = {
         UseItem = false,
         ItemName = 'vehiclecontract',
     },
-    VehicleTransferServerFunction = function(Vehicle, NetId, Plate, SellerSource, BuyerSource)
-        ---@param Vehicle number Vehicle entity id
-        ---@param NetId number Vehicle net id
-        ---@param Plate string Vehicle plate text
-        ---@param SellerSource number Server ID of selling player
-        ---@param BuyerSource number Server ID of buying player
+    VehicleTransferServerFunction = function(vehicle, netId, plate, sellerSource, buyerSource)
+        ---@param vehicle number Vehicle entity id
+        ---@param netId number Vehicle net id
+        ---@param plate string Vehicle plate text
+        ---@param sellerSource number Server ID of selling player
+        ---@param buyerSource number Server ID of buying player
         --custom server code after a vehicle is transferred
 
         --Add code to give vehicle keys to new owner. ([qb-vehiclekeys] and [mk_vehiclekeys] are checked automatically by the script so you don't have to add them here)
 
     end,
-    VehicleTransferAuthFunction = function(Vehicle, Model, Plate, BuyerSource, BuyerPlayerData)
-        ---@param Vehicle number Vehicle entity id
-        ---@param Model number Vehicle model
-        ---@param Plate string Vehicle plate text
+    VehicleTransferAuthFunction = function(vehicle, model, plate, buyerSource, buyerPlayerData)
+        ---@param vehicle number Vehicle entity id
+        ---@param model number Vehicle model
+        ---@param plate string Vehicle plate text
+        ---@param buyerSource number Server ID of buying player
+        ---@param buyerPlayerData table Player Data of buying player
         ---@return boolean
         
         --Add custom code here if you want to disable vehicle transfers in a custom way
@@ -194,16 +215,16 @@ Config.VehicleTransfer = {
 ------------------------------------------------------NOTIFICATIONS-----------------------------------------------------------
 Config.Notify = { 
     UseCustom = false, --FALSE = DEFAULT NOTIFY WILL BE YOUR FRAMEWORKS NOTIFY SYSTEM (QBCore:Notify / esx:showNotification) / TRUE = CUSTOM NOTIFY SCRIPT (OX_LIB / T-NOTIFY / ECT) (VIEW README FILE FOR DETAILED SETUP INFO)
-    CustomClientNotifyFunction = function(Data) --**CLIENT SIDE CODE**
-        ---@param Data table: { Message string, Type string, Duration number }
+    CustomClientNotifyFunction = function(data) --**CLIENT SIDE CODE**
+        ---@param data table: { message string, type string, duration number }
         
-        --TriggerEvent('QBCore:Notify', Data.Message, Data.Type, Data.Duration) --QBCORE EXAMPLE
+        --TriggerEvent('QBCore:Notify', data.message, data.type, data.duration) --QBCORE EXAMPLE
     end,
-    CustomServerNotifyFunction = function(PlayerSource, Data) --**SERVER SIDE CODE** SAME AS ABOVE EXCEPT PASSES THE SOURCE TO SEND THE NOTIFICATION TO FROM THE SERVER
-        ---@param PlayerSource number Server id of the player
-        ---@param Data table: { Message string, Type string, Duration number }
+    CustomServerNotifyFunction = function(playerSource, data) --**SERVER SIDE CODE** SAME AS ABOVE EXCEPT PASSES THE SOURCE TO SEND THE NOTIFICATION TO FROM THE SERVER
+        ---@param playerSource number Server id of the player
+        ---@param data table: { message string, type string, duration number }
 
-        --TriggerClientEvent('QBCore:Notify', PlayerSource, Data.Message, Data.Type, Data.Duration) --QBCORE EXAMPLE
+        --TriggerClientEvent('QBCore:Notify', playerSource, data.message, data.type, data.duration) --QBCORE EXAMPLE
     end,
 }
 ------------------------------------------------------------------------------------------------------------------------------
