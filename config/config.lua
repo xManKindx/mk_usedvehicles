@@ -106,7 +106,7 @@ Config.Logs = {
         ---@param garage string Garage vehicle set to based on Config.Locations
         --Server code to create a log using listed information
 
-        local logString = 'Vehicle (Plate: [**'..Plate..'**] '..(Vin and 'VIN: [**'..Vin..'**] ' or '')..'Model: [**'..Model..'**]) Listed by player (**'..SellerIdentifier..'**) on lot (**'..Location..'**) has expired. Vehicle returned to garage **'..Garage..'**'
+        local logString = 'Vehicle (Plate: [**'..plate..'**] '..(vin and 'VIN: [**'..vin..'**] ' or '')..'Model: [**'..model..'**]) Listed by player (**'..sellerIdentifier..'**) on lot (**'..location..'**) has expired. Vehicle returned to garage **'..garage..'**'
         Utils:DiscordLog(Config.Logs.WebHook, 'Listing Expired', 15548997, logString)
     end,
     ListingRemoved = function(location, sellerIdentifier, model, plate, vin, garage)
