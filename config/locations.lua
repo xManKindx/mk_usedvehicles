@@ -11,21 +11,23 @@ Config.Locations = {
             Rate = 0.50, --% of original sale price vehicle will sell for (0.50 = 50%)
         },
         JobLocked = { --Any job listed in the table below will be allowed to list/sell vehicles on this lot. leave empty if you want anyone to list vehicles here
-            
+            --'myjob'
         },
         BuyerAuth = {
-            IsAuth = function(Vehicle, Model, Plate) --Set a custom function to check if a player is allowed to buy vehicles off this lot. must return true if they can or false if they cannot. Default is true
-                ---@param Vehicle number Vehicle entity id
-                ---@param Model string Model name of the vehicle
-                ---@param Plate string Vehicle plate text
+            ---@param vehicle number Vehicle entity id
+            ---@param model string Model name of the vehicle
+            ---@param plate string Vehicle plate text
+            IsAuth = function(vehicle, model, plate) 
+                --Set a custom function to check if a player is allowed to buy vehicles off this lot. must return true if they can or false if they cannot. Default is true
 
                 return true
             end
         },
-        SellerAuth = { --Set a custom function to check if a player is allowed to sell vehicles on this lot. Must return true if they can or false if they cannot. Default is true
-            IsAuth = function(Vehicle, Plate)
-                ---@param Vehicle number Vehicle entity id
-                ---@param Plate string Vehicle plate text
+        SellerAuth = {
+            ---@param vehicle number Vehicle entity id
+            ---@param plate string Vehicle plate text
+            IsAuth = function(vehicle, plate)
+                --Set a custom function to check if a player is allowed to sell vehicles on this lot. Must return true if they can or false if they cannot. Default is true
 
                 return true
             end
@@ -33,8 +35,9 @@ Config.Locations = {
         SocietyPayment = {
             Enable = false, --true = vehicle purchase amount is split between the player who listed the vehicle (commission) and a society account deposit / false = entire sale price goes to player who listed vehicle
             SellerComission = 0.10, --.10 = 10 % sale price given to player who listed the vehicle
-            DoPayment = function(Amount)
-                ---@param Amount number Amount to be deposited into society (Vehicle sale price - Seller commission)
+
+            ---@param amount number Amount to be deposited into society (Vehicle sale price - Seller commission)
+            DoPayment = function(amount)
                 --Enter server side event/export here to deposit funds into your society account for this lot
 
             end
@@ -126,19 +129,19 @@ Config.Locations = {
             
         },
         BuyerAuth = {
-            IsAuth = function(Vehicle, Model, Plate)
+            IsAuth = function(vehicle, model, plate)
                 return true
             end
         },
         SellerAuth = {
-            IsAuth = function(Vehicle, Plate)
+            IsAuth = function(vehicle, plate)
                 return true
             end
         },
         SocietyPayment = {
             Enable = false,
             SellerComission = 0.10,
-            DoPayment = function(Amount)
+            DoPayment = function(amount)
 
             end
         },
