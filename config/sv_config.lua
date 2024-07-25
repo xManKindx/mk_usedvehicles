@@ -4,15 +4,28 @@
 Config.CheckFinance = function(vehicleData)
     if not vehicleData or vehicleData == '' or next(vehicleData) == nil then return 0 end 
 
-    if vehicleData.balance then --default qb-core column
-        if tonumber(vehicleData.balance) then 
-            return tonumber(vehicleData.balance)
+    if GetResourceState('mk_vehicleshop') == 'started' then
+        if vehicleData.vehicleData then
+            vehicleData = json.decode(vehicleData.vehicleData)
+            if vehicleData?.finance?.balance then
+                return vehicleData.finance.balance
+            else
+                return 0
+            end
         else
             return 0
         end
     else
-        --custom check here
-        return 0
+        if vehicleData.balance then --default qb-core column
+            if tonumber(vehicleData.balance) then 
+                return tonumber(vehicleData.balance)
+            else
+                return 0
+            end
+        else
+            --custom check here
+            return 0
+        end
     end
 end
 
@@ -151,8 +164,15 @@ Config.Logs = {
     ---@param price number Amount vehicle was sold for
     VehicleSold = function(location, sellerSource, sellerIdentifier, model, plate, price)
         --Server code to create a log when player sells their vehicle
-        
+
         local logString = 'Vehicle (Plate: [**'..plate..'**] '..'Model: [**'..model..'**]) Sold to dealership (**'..location..'**) by (Player: **'..sellerIdentifier..'** | ID: **'..sellerSource..'**) for $**'..utils:formatThousand(price)..'**'
         utils:discordLog(Config.Logs.WebHook, 'Vehicle Sold To Dealer', 5763719, logString)
+    end,
+
+    VehicleTransfered = function(buyerSource, buyerIdentifier, sellerSource, sellerIdentifier, model, plate)
+        --Server code to create a log when players transfer a vehicle
+
+        local logString = 'Vehicle (Plate: [**'..plate..'**] '..'Model: [**'..model..'**]) Transferred from (Player: **'..sellerIdentifier..'** | ID: **'..sellerSource..'**) to (Player: **'..buyerIdentifier..'** | ID: **'..buyerSource..'**)'
+        utils:discordLog(Config.Logs.WebHook, 'Vehicle Transferred', 5763719, logString)
     end,
 }
