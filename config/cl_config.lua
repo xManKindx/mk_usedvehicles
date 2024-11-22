@@ -1,5 +1,7 @@
 Config = {}
 
+Config.CurrencyIcon = 'fas fa-dollar-sign'
+
 Config.RestrictJobVehicles = {
     Restrict = true,
     JobColumn = 'job', --COLUMN TO CHECK IN THE VEHICLES DATABASE FOR A RESTRICTED JOB NAME.

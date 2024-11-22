@@ -39,6 +39,8 @@ Config.VehiclePurchasedServerFunction = function(vehicle, netId, plate)
     Entity(vehicle).state.NoImpound = nil
     Entity(vehicle).state.NoInventory = nil
     Entity(vehicle).state.NoChop = nil
+
+    if GetResourceState('qbx_core') == 'started' then Entity(vehicle).state.persisted = true end
 end
 
 ---@param vehicle number Vehicle entity id
@@ -51,6 +53,8 @@ Config.VehicleRemovedServerFunction = function(vehicle, netId, plate)
     Entity(vehicle).state.NoImpound = nil
     Entity(vehicle).state.NoInventory = nil
     Entity(vehicle).state.NoChop = nil
+
+    if GetResourceState('qbx_core') == 'started' then Entity(vehicle).state.persisted = true end
 end
 
 ---@param vehicle number Vehicle entity id
@@ -62,6 +66,8 @@ Config.VehicleOnLotServerFunction = function(vehicle, netId)
     Entity(vehicle).state.NoImpound = true
     Entity(vehicle).state.NoInventory = true
     Entity(vehicle).state.NoChop = true
+
+    if GetResourceState('qbx_core') == 'started' then Entity(vehicle).state.persisted = nil end
 end
 
 ---@param plate string Vehicle plate text
