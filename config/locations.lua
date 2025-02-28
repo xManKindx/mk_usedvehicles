@@ -48,6 +48,7 @@ Config.Locations = {
             Sprite = 810, 
             Color = 38,
             ShortRange = true, --true = only see blip while close / false = see blip at all times
+            Scale = 0.6
         },
         RestrictByModel = { --Add specific vehicle model/hashes here to limit only those types on this used lot
             --'blista',
@@ -150,7 +151,8 @@ Config.Locations = {
             Name = "Mosley's Used Car Lot", 
             Sprite = 810, 
             Color = 38,
-            ShortRange = true, 
+            ShortRange = true,
+            Scale = 0.6
         },
         RestrictByModel = { 
 
